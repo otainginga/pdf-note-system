@@ -1,0 +1,29 @@
+# Python虚拟环境
+.venv/
+venv/
+
+# 数据目录
+data/
+logs/
+
+# 编译缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 编辑器配置
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 临时文件
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+
+# uv锁文件
+uv.lock

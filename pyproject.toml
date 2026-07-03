@@ -1,0 +1,14 @@
+[project]
+name = "pdf-note-system"
+version = "1.0.0"
+description = "PDF双页阅读笔记系统"
+requires-python = ">=3.9"
+dependencies = [
+    "streamlit>=1.28.0",
+    "PyMuPDF>=1.23.0",
+    "Pillow>=10.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[tool.uv]
+required-version = ">=0.10.0"
