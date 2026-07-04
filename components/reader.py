@@ -74,12 +74,15 @@ def reader(book: dict):
     
     if 'page_slider_value' not in st.session_state:
         st.session_state['page_slider_value'] = st.session_state['current_page'] + 1
+        st.session_state['page_slider'] = st.session_state['current_page'] + 1
     
     if 'page_input_dual_value' not in st.session_state:
         st.session_state['page_input_dual_value'] = st.session_state['current_page'] + 1
+        st.session_state['page_input_dual'] = st.session_state['current_page'] + 1
     
     if 'page_input_single_value' not in st.session_state:
         st.session_state['page_input_single_value'] = st.session_state['current_page'] + 1
+        st.session_state['page_input'] = st.session_state['current_page'] + 1
     
     current_page = st.session_state['current_page']
     reading_mode = st.session_state['reading_mode']
@@ -168,6 +171,8 @@ def reader(book: dict):
                             st.session_state['current_page'] = max(0, current_page - 1)
                             st.session_state['page_slider_value'] = st.session_state['current_page'] + 1
                             st.session_state['page_input_dual_value'] = st.session_state['current_page'] + 1
+                            st.session_state['page_slider'] = st.session_state['current_page'] + 1
+                            st.session_state['page_input_dual'] = st.session_state['current_page'] + 1
                             from utils.note_storage import update_last_page
                             update_last_page(book['id'], st.session_state['current_page'])
                             logger.info(f"翻页: 上一页 -> {st.session_state['current_page']}")
@@ -206,6 +211,8 @@ def reader(book: dict):
                             st.session_state['current_page'] = min(total_pages - 1, current_page + 1)
                             st.session_state['page_slider_value'] = st.session_state['current_page'] + 1
                             st.session_state['page_input_dual_value'] = st.session_state['current_page'] + 1
+                            st.session_state['page_slider'] = st.session_state['current_page'] + 1
+                            st.session_state['page_input_dual'] = st.session_state['current_page'] + 1
                             from utils.note_storage import update_last_page
                             update_last_page(book['id'], st.session_state['current_page'])
                             logger.info(f"翻页: 下一页 -> {st.session_state['current_page']}")
@@ -233,6 +240,7 @@ def reader(book: dict):
                         st.session_state['current_page'] = new_page - 1
                         st.session_state['page_slider_value'] = new_page
                         st.session_state['page_input_dual_value'] = new_page
+                        st.session_state['page_input_dual'] = new_page
                         from utils.note_storage import update_last_page
                         update_last_page(book['id'], st.session_state['current_page'])
                         logger.info(f"滑块跳转: {current_page + 1} -> {new_page}")
@@ -244,6 +252,7 @@ def reader(book: dict):
                         st.session_state['current_page'] = input_page - 1
                         st.session_state['page_slider_value'] = input_page
                         st.session_state['page_input_dual_value'] = input_page
+                        st.session_state['page_slider'] = input_page
                         from utils.note_storage import update_last_page
                         update_last_page(book['id'], st.session_state['current_page'])
                         logger.info(f"输入跳转: {current_page + 1} -> {input_page}")
@@ -275,6 +284,7 @@ def reader(book: dict):
                             if current_page > 0:
                                 st.session_state['current_page'] = max(0, current_page - 1)
                                 st.session_state['page_input_single_value'] = st.session_state['current_page'] + 1
+                                st.session_state['page_input'] = st.session_state['current_page'] + 1
                                 from utils.note_storage import update_last_page
                                 update_last_page(book['id'], st.session_state['current_page'])
                                 logger.info(f"翻页: 上一页 -> {st.session_state['current_page']}")
@@ -288,6 +298,7 @@ def reader(book: dict):
                             if current_page < total_pages - 1:
                                 st.session_state['current_page'] = min(total_pages - 1, current_page + 1)
                                 st.session_state['page_input_single_value'] = st.session_state['current_page'] + 1
+                                st.session_state['page_input'] = st.session_state['current_page'] + 1
                                 from utils.note_storage import update_last_page
                                 update_last_page(book['id'], st.session_state['current_page'])
                                 logger.info(f"翻页: 下一页 -> {st.session_state['current_page']}")
@@ -298,6 +309,7 @@ def reader(book: dict):
                         if new_page != st.session_state['page_input_single_value']:
                             st.session_state['current_page'] = new_page - 1
                             st.session_state['page_input_single_value'] = new_page
+                            st.session_state['page_input'] = new_page
                             from utils.note_storage import update_last_page
                             update_last_page(book['id'], st.session_state['current_page'])
                             logger.info(f"输入跳转: {current_page + 1} -> {new_page}")
@@ -354,4 +366,7 @@ def jump_to_page(page_num: int):
     st.session_state['page_slider_value'] = page_num + 1
     st.session_state['page_input_dual_value'] = page_num + 1
     st.session_state['page_input_single_value'] = page_num + 1
+    st.session_state['page_slider'] = page_num + 1
+    st.session_state['page_input_dual'] = page_num + 1
+    st.session_state['page_input'] = page_num + 1
     st.rerun()
