@@ -99,7 +99,7 @@ def reader(book: dict):
                 logger.error(f"PDF文件为空: {book['file_path']}")
                 return
             
-            bookmark_sidebar(book['notes_path'], on_bookmark_click=lambda page: jump_to_page(page))
+            bookmark_sidebar(book['notes_path'], on_bookmark_click=lambda page: jump_to_page(page), toc=pdf.get_toc())
             
             col_back, col_modes, col_display = st.columns([3, 1, 1])
             with col_back:

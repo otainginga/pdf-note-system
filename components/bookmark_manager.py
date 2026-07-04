@@ -5,9 +5,48 @@ from utils.logger import setup_logger
 logger = setup_logger(__name__)
 
 
-def bookmark_sidebar(notes_path: str, on_bookmark_click=None):
+def bookmark_sidebar(notes_path: str, on_bookmark_click=None, toc=None):
     logger.debug("初始化书签侧边栏")
     
+    # TOC 列表样式
+    st.markdown("""
+    <style>
+    .toc-list button {
+        background: transparent !important;
+        border: none !important;
+        text-align: left !important;
+        padding: 3px 8px !important;
+        font-size: 14px !important;
+        color: inherit !important;
+        cursor: pointer !important;
+        width: 100% !important;
+        font-weight: normal !important;
+        border-radius: 4px !important;
+    }
+    .toc-list button:hover {
+        background: rgba(128,128,128,0.15) !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # PDF 目录结构
+    if toc:
+        with st.sidebar.expander("📑 目录", expanded=False):
+            st.markdown('<div class="toc-list">', unsafe_allow_html=True)
+            for level, title, page in toc:
+                indent = "&nbsp;&nbsp;" * (level - 1)
+                icon = "▸" if level == 1 else "&nbsp;"
+                label = f"{indent}{icon} {title}"
+                if st.button(
+                    label,
+                    key=f"toc_{level}_{page}_{hash(title)}",
+                    help=f"跳转到第 {page} 页",
+                    use_container_width=True
+                ):
+                    if on_bookmark_click:
+                        on_bookmark_click(page - 1)
+            st.markdown('</div>', unsafe_allow_html=True)
+
     bookmarks = get_all_bookmarks(notes_path)
     bookmark_count = len(bookmarks)
     
