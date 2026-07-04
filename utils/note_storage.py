@@ -52,6 +52,12 @@ def save_shelf(shelf: Dict):
 def add_book(title: str, file_path: str) -> Dict:
     logger.info(f"添加书籍: {title}, 文件路径: {file_path}")
     shelf = load_shelf()
+    
+    existing = next((b for b in shelf["books"] if b["file_path"] == file_path), None)
+    if existing:
+        logger.warning(f"书籍已存在，跳过重复添加: {file_path}")
+        return existing
+    
     book_id = os.path.basename(os.path.dirname(file_path))
     book_dir = os.path.dirname(file_path)
     
@@ -79,37 +85,38 @@ def remove_book(book_id: str):
     logger.info(f"删除书籍: {book_id}")
     shelf = load_shelf()
     book = next((b for b in shelf["books"] if b["id"] == book_id), None)
-    if book:
-        try:
-            if os.path.exists(book["file_path"]):
-                os.remove(book["file_path"])
-                logger.debug(f"删除书籍文件: {book['file_path']}")
-            
-            if os.path.exists(book["notes_path"]):
-                os.remove(book["notes_path"])
-                logger.debug(f"删除笔记文件: {book['notes_path']}")
-            
-            if os.path.exists(book["images_path"]):
-                for img in os.listdir(book["images_path"]):
-                    img_path = os.path.join(book["images_path"], img)
-                    os.remove(img_path)
-                    logger.debug(f"删除图片: {img_path}")
-                os.rmdir(book["images_path"])
-                logger.debug(f"删除图片目录: {book['images_path']}")
-            
-            book_dir = os.path.dirname(book["file_path"])
-            if os.path.exists(book_dir):
-                os.rmdir(book_dir)
-                logger.debug(f"删除书籍目录: {book_dir}")
-            
-            shelf["books"] = [b for b in shelf["books"] if b["id"] != book_id]
-            save_shelf(shelf)
-            
-            logger.info(f"书籍删除成功: {book_id}")
-        except Exception as e:
-            logger.error(f"删除书籍失败: {e}")
-    else:
+    if not book:
         logger.warning(f"未找到书籍: {book_id}")
+        raise ValueError(f"未找到书籍: {book_id}")
+    
+    shelf["books"] = [b for b in shelf["books"] if b["id"] != book_id]
+    save_shelf(shelf)
+    
+    try:
+        if os.path.exists(book["file_path"]):
+            os.remove(book["file_path"])
+            logger.debug(f"删除书籍文件: {book['file_path']}")
+        
+        if os.path.exists(book["notes_path"]):
+            os.remove(book["notes_path"])
+            logger.debug(f"删除笔记文件: {book['notes_path']}")
+        
+        if os.path.exists(book["images_path"]):
+            for img in os.listdir(book["images_path"]):
+                img_path = os.path.join(book["images_path"], img)
+                os.remove(img_path)
+                logger.debug(f"删除图片: {img_path}")
+            os.rmdir(book["images_path"])
+            logger.debug(f"删除图片目录: {book['images_path']}")
+        
+        book_dir = os.path.dirname(book["file_path"])
+        if os.path.exists(book_dir):
+            os.rmdir(book_dir)
+            logger.debug(f"删除书籍目录: {book_dir}")
+    except Exception as e:
+        logger.warning(f"文件清理失败（书架条目已删除）: {e}")
+    
+    logger.info(f"书籍删除成功: {book_id}")
 
 
 def update_last_page(book_id: str, page: int):
@@ -121,6 +128,86 @@ def update_last_page(book_id: str, page: int):
             logger.debug(f"最后阅读页码更新成功: {book_id} -> {page}")
             break
     save_shelf(shelf)
+
+
+def sync_shelf_with_disk():
+    logger.info("开始同步书架与磁盘...")
+    shelf = load_shelf()
+    books_dir = os.path.join(DATA_DIR, 'books')
+    os.makedirs(books_dir, exist_ok=True)
+
+    disk_ids = set()
+    try:
+        for entry in os.listdir(books_dir):
+            entry_path = os.path.join(books_dir, entry)
+            if os.path.isdir(entry_path) and len(entry) == 36:
+                disk_ids.add(entry)
+    except Exception as e:
+        logger.warning(f"扫描 books 目录失败: {e}")
+
+    shelf_ids = {b["id"] for b in shelf["books"]}
+    changed = False
+
+    valid_books = []
+    for book in shelf["books"]:
+        bid = book["id"]
+        book_dir = os.path.join(books_dir, bid)
+
+        if not os.path.isdir(book_dir):
+            logger.warning(f"书架条目 {bid} 磁盘目录已丢失，移除: {book['title']}")
+            changed = True
+            continue
+
+        if not os.path.exists(book.get("notes_path", "")):
+            book["notes_path"] = os.path.join(book_dir, "notes.json")
+            init_notes_file(book["notes_path"])
+            changed = True
+
+        if not os.path.exists(book.get("images_path", "")):
+            book["images_path"] = os.path.join(book_dir, "images")
+            os.makedirs(book["images_path"], exist_ok=True)
+            changed = True
+
+        valid_books.append(book)
+
+    shelf["books"] = valid_books
+
+    orphaned_disk_ids = disk_ids - shelf_ids
+    for bid in orphaned_disk_ids:
+        book_dir = os.path.join(books_dir, bid)
+        pdf_files = [f for f in os.listdir(book_dir) if f.lower().endswith('.pdf')]
+        if not pdf_files:
+            logger.warning(f"磁盘目录 {bid} 中无 PDF 文件，跳过恢复")
+            continue
+
+        pdf_name = pdf_files[0]
+        title = pdf_name[:-4]
+        file_path = os.path.join(book_dir, pdf_name)
+        notes_path = os.path.join(book_dir, "notes.json")
+        images_path = os.path.join(book_dir, "images")
+
+        book_data = {
+            "id": bid,
+            "title": title,
+            "file_path": file_path,
+            "notes_path": notes_path,
+            "images_path": images_path,
+            "last_page": 0,
+            "added_at": datetime.now().isoformat(),
+        }
+        os.makedirs(images_path, exist_ok=True)
+        init_notes_file(notes_path)
+        shelf["books"].append(book_data)
+        logger.info(f"从磁盘恢复书籍: {title}")
+        changed = True
+
+    if changed:
+        save_shelf(shelf)
+        logger.info("书架同步完成（有变更）")
+    else:
+        logger.info("书架同步完成（无变更）")
+
+    return shelf
 
 
 def get_book(book_id: str) -> Optional[Dict]:
