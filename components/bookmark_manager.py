@@ -53,6 +53,37 @@ def bookmark_sidebar(notes_path: str, on_bookmark_click=None, toc=None):
     div.element-container:has(div.toc-l5-marker) + div.element-container button:hover {
         filter: brightness(1.1) !important;
     }
+    /* 书签列表样式 */
+    .bm-bar {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .bm-bar button {
+        text-align: left !important;
+        justify-content: flex-start !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        padding: 4px 10px !important;
+        font-size: 14px !important;
+        cursor: pointer !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+    .bm-bar button:hover {
+        background: rgba(128,128,128,0.1) !important;
+    }
+    .bm-bar + div button {
+        text-align: left !important;
+        justify-content: flex-start !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        padding: 4px 10px !important;
+        font-size: 14px !important;
+        cursor: pointer !important;
+        margin: 0 !important;
+    }
     </style>
     """, unsafe_allow_html=True)
     
@@ -82,6 +113,7 @@ def bookmark_sidebar(notes_path: str, on_bookmark_click=None, toc=None):
             logger.debug(f"获取到 {bookmark_count} 个书签")
             for bookmark in bookmarks:
                 logger.debug(f"处理书签: id={bookmark['id']}, page={bookmark['page']}")
+                st.markdown('<div class="bm-bar">', unsafe_allow_html=True)
                 col1, col2 = st.columns([4, 1])
                 with col1:
                     page_info = f"第 {bookmark['page'] + 1} 页"
@@ -108,6 +140,7 @@ def bookmark_sidebar(notes_path: str, on_bookmark_click=None, toc=None):
                             st.rerun()
                         if st.button("取消", key=delete_key + "_cancel"):
                             st.session_state[delete_key] = False
+                st.markdown('</div>', unsafe_allow_html=True)
 
 
 def add_bookmark_button(notes_path: str, current_page: int):
