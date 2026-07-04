@@ -8,23 +8,50 @@ logger = setup_logger(__name__)
 def bookmark_sidebar(notes_path: str, on_bookmark_click=None, toc=None):
     logger.debug("初始化书签侧边栏")
     
-    # TOC 列表样式
+    # 目录样式 — 各层级不同背景色
     st.markdown("""
     <style>
-    .toc-list button {
-        background: transparent !important;
+    div.element-container:has(div.toc-l1-marker) + div.element-container button {
+        background: #6C8EBF !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+    div.element-container:has(div.toc-l2-marker) + div.element-container button {
+        background: #8CB5A0 !important;
+        color: #ffffff !important;
+    }
+    div.element-container:has(div.toc-l3-marker) + div.element-container button {
+        background: #E8A87C !important;
+        color: #ffffff !important;
+    }
+    div.element-container:has(div.toc-l4-marker) + div.element-container button {
+        background: #C9A9C4 !important;
+        color: #ffffff !important;
+    }
+    div.element-container:has(div.toc-l5-marker) + div.element-container button {
+        background: #E5C6A5 !important;
+        color: #ffffff !important;
+    }
+    div.element-container:has(div.toc-l1-marker) + div.element-container button,
+    div.element-container:has(div.toc-l2-marker) + div.element-container button,
+    div.element-container:has(div.toc-l3-marker) + div.element-container button,
+    div.element-container:has(div.toc-l4-marker) + div.element-container button,
+    div.element-container:has(div.toc-l5-marker) + div.element-container button {
         border: none !important;
+        border-radius: 0 !important;
         text-align: left !important;
-        padding: 3px 8px !important;
+        padding: 4px 10px !important;
         font-size: 14px !important;
-        color: inherit !important;
         cursor: pointer !important;
         width: 100% !important;
-        font-weight: normal !important;
-        border-radius: 4px !important;
+        margin: 0 !important;
     }
-    .toc-list button:hover {
-        background: rgba(128,128,128,0.15) !important;
+    div.element-container:has(div.toc-l1-marker) + div.element-container button:hover,
+    div.element-container:has(div.toc-l2-marker) + div.element-container button:hover,
+    div.element-container:has(div.toc-l3-marker) + div.element-container button:hover,
+    div.element-container:has(div.toc-l4-marker) + div.element-container button:hover,
+    div.element-container:has(div.toc-l5-marker) + div.element-container button:hover {
+        filter: brightness(1.1) !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -32,20 +59,17 @@ def bookmark_sidebar(notes_path: str, on_bookmark_click=None, toc=None):
     # PDF 目录结构
     if toc:
         with st.sidebar.expander("📑 目录", expanded=False):
-            st.markdown('<div class="toc-list">', unsafe_allow_html=True)
             for level, title, page in toc:
                 indent = "&nbsp;&nbsp;" * (level - 1)
-                icon = "▸" if level == 1 else "&nbsp;"
-                label = f"{indent}{icon} {title}"
+                st.markdown(f'<div class="toc-l{level}-marker" style="display:none"></div>', unsafe_allow_html=True)
                 if st.button(
-                    label,
+                    f"{indent}{title}",
                     key=f"toc_{level}_{page}_{hash(title)}",
                     help=f"跳转到第 {page} 页",
                     use_container_width=True
                 ):
                     if on_bookmark_click:
                         on_bookmark_click(page - 1)
-            st.markdown('</div>', unsafe_allow_html=True)
 
     bookmarks = get_all_bookmarks(notes_path)
     bookmark_count = len(bookmarks)
