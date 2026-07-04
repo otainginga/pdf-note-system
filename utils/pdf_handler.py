@@ -116,6 +116,42 @@ class PDFHandler:
             logger.error(f"获取PDF元数据失败: {e}")
             return {}
     
+    def get_toc(self) -> list:
+        """获取PDF目录结构
+        返回格式: [[level, title, page], ...]，其中page是从1开始的页码
+        """
+        logger.debug(f"获取PDF目录: {self.file_path}")
+        self.open()
+        try:
+            toc = self.doc.get_toc()
+            logger.debug(f"PDF目录获取成功，条目数: {len(toc)}")
+            return toc
+        except Exception as e:
+            logger.error(f"获取PDF目录失败: {e}")
+            return []
+    
+    def get_toc_for_page(self, page_num: int) -> Optional[str]:
+        """获取指定页面的目录标题（page_num是从0开始的页码）
+        返回最接近该页面的目录标题
+        """
+        toc = self.get_toc()
+        if not toc:
+            return None
+        
+        # 转换为从0开始的页码进行比较
+        target_page = page_num + 1  # PDF目录中的页码是从1开始的
+        
+        # 找到最后一个页码小于等于当前页面的目录项
+        found_title = None
+        for item in toc:
+            level, title, page = item
+            if page <= target_page:
+                found_title = title
+            else:
+                break
+        
+        return found_title
+    
     def __enter__(self):
         logger.debug(f"进入PDFHandler上下文: {self.file_path}")
         self.open()

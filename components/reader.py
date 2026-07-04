@@ -125,12 +125,18 @@ def reader(book: dict):
                     st.markdown("</div>", unsafe_allow_html=True)
                 
                 with col_left:
+                    left_title = pdf.get_toc_for_page(left_page)
+                    if left_title:
+                        st.markdown(f"**{left_title}**")
                     st.subheader(f"第 {left_page + 1} 页")
                     note_count_left = get_note_count_by_page(book['notes_path'], left_page)
                     render_page_image(pdf, left_page, note_count_left)
                 
                 with col_right:
                     if right_page is not None:
+                        right_title = pdf.get_toc_for_page(right_page)
+                        if right_title:
+                            st.markdown(f"**{right_title}**")
                         st.subheader(f"第 {right_page + 1} 页")
                         note_count_right = get_note_count_by_page(book['notes_path'], right_page)
                         render_page_image(pdf, right_page, note_count_right)
@@ -196,6 +202,9 @@ def reader(book: dict):
                 col_book, col_notes = st.columns([1.2, 1])
                 
                 with col_book:
+                    display_title = pdf.get_toc_for_page(display_page)
+                    if display_title:
+                        st.markdown(f"**{display_title}**")
                     st.subheader(f"第 {display_page + 1} 页")
                     note_count = get_note_count_by_page(book['notes_path'], display_page)
                     render_page_image(pdf, display_page, note_count)
