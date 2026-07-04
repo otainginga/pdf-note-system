@@ -1,5 +1,5 @@
 import streamlit as st
-from utils.note_storage import get_all_notes, remove_book, load_shelf, save_shelf, DATA_DIR
+from utils.note_storage import get_all_notes, remove_book, load_shelf, save_shelf, DATA_DIR, export_notes_to_markdown
 from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
@@ -23,7 +23,7 @@ def render_book_card(index, book, note_count=0):
     last_page = book.get("last_page", 0)
 
     with st.container(border=True):
-        cols = st.columns([0.6, 0.6, 2.2, 0.8, 0.8, 1.0, 0.8])
+        cols = st.columns([0.6, 0.6, 2.2, 0.8, 0.8, 0.8, 1.0, 0.8])
 
         with cols[0]:
             st.markdown(f"**{index}**")
@@ -63,12 +63,17 @@ def render_book_card(index, book, note_count=0):
                         st.rerun()
 
         with cols[5]:
+            if st.button("📤", key=f"export_{book_id}", help="导出笔记为 Markdown"):
+                export_path = export_notes_to_markdown(book["notes_path"], title, book.get("file_path"))
+                st.toast(f"✅ 笔记已导出至: {export_path}")
+
+        with cols[6]:
             label = f"📝 {note_count}" if note_count > 0 else "📝"
             help_text = f"共 {note_count} 条笔记" if note_count > 0 else "暂无笔记"
             if st.button(label, key=f"notes_{book_id}", help=help_text):
                 st.toast(f"📝 《{title}》共有 {note_count} 条笔记")
 
-        with cols[6]:
+        with cols[7]:
             with st.popover("🗑️", help="删除此书"):
                 st.warning("⚠️ 确认删除？所有笔记和图片将永久丢失！")
                 col_yes, col_no = st.columns(2)

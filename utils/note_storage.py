@@ -370,3 +370,144 @@ def get_bookmark_count(notes_path: str) -> int:
 
 def get_note_count_by_page(notes_path: str, page: int) -> int:
     return len(get_notes_by_page(notes_path, page))
+
+
+def export_notes_to_markdown(notes_path: str, book_title: str, pdf_path: str = None) -> str:
+    """将笔记导出为 Markdown 文件，返回文件路径"""
+    from utils.pdf_handler import PDFHandler
+
+    notes_data = load_notes(notes_path)
+    notes = notes_data.get("notes", [])
+    bookmarks = notes_data.get("bookmarks", [])
+
+    # 获取 PDF 目录结构
+    toc = []
+    if pdf_path and os.path.exists(pdf_path):
+        try:
+            with PDFHandler(pdf_path) as pdf:
+                toc = pdf.get_toc()
+        except Exception as e:
+            logger.warning(f"读取PDF目录失败: {e}")
+
+    md_lines = []
+    md_lines.append(f"# 笔记导出 - {book_title}")
+    md_lines.append("")
+    md_lines.append(f"- 导出时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    md_lines.append(f"- 笔记总数: {len(notes)}")
+    if bookmarks:
+        md_lines.append(f"- 书签总数: {len(bookmarks)}")
+    if toc:
+        md_lines.append(f"- 导出结构: 按 PDF 目录组织")
+    md_lines.append("")
+    md_lines.append("---")
+    md_lines.append("")
+
+    if not notes:
+        md_lines.append("暂无笔记。")
+        md_lines.append("")
+    else:
+        # 按页码排序
+        sorted_notes = sorted(notes, key=lambda n: n.get("page", 0))
+
+        def _get_toc_path(page_0based):
+            """返回当前页码对应的目录层级路径 [(level, title), ...]"""
+            target = page_0based + 1
+            path = []
+            for level, title, page in toc:
+                if page <= target:
+                    path = [(l, t) for l, t in path if l < level]
+                    path.append((level, title))
+                else:
+                    break
+            return path
+
+        prev_path = []
+        prev_page = -1
+
+        for note in sorted_notes:
+            page = note.get("page", 0)
+            toc_path = _get_toc_path(page) if toc else []
+
+            # 目录路径发生变化时输出新的标题层级
+            if toc_path != prev_path:
+                # 找到共同的祖先层级长度
+                common = 0
+                for a, b in zip(prev_path, toc_path):
+                    if a == b:
+                        common += 1
+                    else:
+                        break
+
+                # 先关闭旧的层级（输出分隔线，除非是第一个）
+                if prev_path and prev_page >= 0:
+                    md_lines.append("---")
+                    md_lines.append("")
+
+                # 输出新的标题层级
+                for level, title in toc_path[common:]:
+                    heading_level = min(level + 1, 5)  # TOC level 1 → ##, level 2 → ###, etc.
+                    md_lines.append(f"{'#' * heading_level} {title}")
+                    md_lines.append("")
+
+                prev_path = toc_path
+                prev_page = page
+
+            # 如果没有 TOC 但页码变化，输出页码标题
+            elif not toc and page != prev_page:
+                md_lines.append(f"## 第 {page + 1} 页")
+                md_lines.append("")
+                prev_page = page
+
+            # 笔记内容 — 被选中文本用引用格式
+            text = note.get("text", "").strip()
+            if text:
+                for line in text.split("\n"):
+                    md_lines.append(f"> {line}")
+                md_lines.append("")
+
+            # 笔记正文 — 正常段落格式
+            content = note.get("content", "").strip()
+            if content and content != text:
+                md_lines.append(content)
+                md_lines.append("")
+
+            # 图片
+            images = note.get("images", [])
+            if images:
+                md_lines.append("**附件图片:**")
+                for img in images:
+                    md_lines.append(f"  - ![{img}]({img})")
+                md_lines.append("")
+
+        # 最后收尾分隔线
+        if notes:
+            md_lines.append("---")
+            md_lines.append("")
+
+    if bookmarks:
+        md_lines.append("")
+        md_lines.append("## 📑 书签")
+        md_lines.append("")
+        for bm in sorted(bookmarks, key=lambda x: x.get("page", 0)):
+            page = bm.get("page", 0)
+            # 查找书签对应的目录标题
+            bm_toc_path = _get_toc_path(page) if toc else []
+            bm_label = f" / ".join(t for _, t in bm_toc_path) if bm_toc_path else f"第 {page + 1} 页"
+            note_text = bm.get("note", "")
+            if note_text:
+                md_lines.append(f"- {bm_label} — {note_text}")
+            else:
+                md_lines.append(f"- {bm_label}")
+        md_lines.append("")
+
+    # 保存到系统 Download 文件夹
+    download_dir = os.path.join(os.path.expanduser("~"), "Downloads")
+    safe_title = "".join(c for c in book_title if c.isalnum() or c in " _-").strip()
+    filename = f"{safe_title}_笔记导出.md" if safe_title else "notes_export.md"
+    export_path = os.path.join(download_dir, filename)
+
+    with open(export_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(md_lines))
+
+    logger.info(f"笔记导出成功: {export_path}")
+    return export_path
