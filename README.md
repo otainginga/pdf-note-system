@@ -1,179 +1,178 @@
-# PDF双页阅读笔记系统
+# PDF Note System
 
-一个基于Streamlit的个人PDF阅读笔记系统，采用双页阅读器布局，支持文本选择、富文本笔记（Markdown + 图片）、书签导航和自动部署管理。
+A personal PDF reading and note-taking system based on Streamlit, featuring a dual-page reader layout, rich text notes (Markdown + images), bookmark navigation, and automatic data management.
 
-## ✨ 功能特性
+## Features
 
-### 📚 书架管理
-- 展示所有已导入的PDF书籍列表
-- 支持上传新的PDF文件
-- 每本书独立存储，包含书籍信息、最后阅读页码、书签列表
-- 支持删除书籍（同时删除所有关联笔记和图片）
-- 支持重命名书籍
+### Bookshelf Management
+- Display all imported PDF books in a list
+- Upload new PDF files
+- Each book has independent storage with metadata, last page, and bookmarks
+- Delete books (removes all associated notes and images)
+- Rename books
 
-### 📖 双页阅读器
-- **布局**：左页 + 右页 + 右侧笔记面板（比例2:2:1.5）
-- **单页模式**：支持切换单页阅读，书籍区域和笔记区域1:1
-- **翻页控制**：上一页/下一页按钮，页码滑块，数字输入跳转
-- **快捷键**：左/右方向键翻页
-- **笔记徽章**：页面右上角显示该页笔记数量
+### Dual-Page Reader
+- **Layout**: Left page + Right page + Right-side note panel (ratio 2:2:1.5)
+- **Single Page Mode**: Switch to single page layout with 1:1 book/note ratio
+- **Page Navigation**: Previous/Next buttons, page slider, numeric input jump
+- **Shortcuts**: Left/Right arrow keys for page turning
+- **Note Badges**: Display note count per page
 
-### 📝 笔记系统
-- 支持Markdown格式笔记（标题、列表、加粗、斜体、表格、代码块）
-- 支持插入图片（拖拽或点击上传）
-- 自动记录页码和创建/更新时间
-- 笔记面板显示当前页面的笔记
-- 鼠标悬停自动展开笔记条目
-- 支持编辑和删除笔记
+### Note System
+- Markdown formatting (headings, lists, bold, italic, tables, code blocks)
+- Image insertion (drag & drop or click to upload)
+- Auto-record page number and creation/update timestamps
+- Note panel shows notes for current page
+- Hover to auto-expand note entries
+- Edit and delete notes
 
-### 🔖 书签系统
-- 添加/删除书签
-- 书签列表显示在侧边栏（默认隐藏）
-- 点击书签快速跳转到对应页面
-- 支持书签备注
+### Bookmark System
+- Add/delete bookmarks
+- Bookmark list in sidebar (collapsed by default)
+- Click bookmark to jump to page
+- Bookmark notes/annotations
 
-### 📊 统计功能
-- 书籍数量、笔记数量、书签数量统计
-- 笔记文件大小、图片文件大小统计
+### Statistics
+- Book count, note count, bookmark count
+- Notes file size, images file size
 
-## 🚀 快速开始
+## Quick Start
 
-### 环境要求
+### Prerequisites
 - Python 3.9+
 - Streamlit 1.28+
 - PyMuPDF (fitz) 1.23+
 - Pillow 10.0+
-- uv (Python包管理器)
+- uv (Python package manager)
 
-### 安装与运行
+### Installation & Run
 
-**方式一：使用启动脚本（推荐）**
+**Method 1: Using startup scripts (recommended)**
 ```bash
-# 安装uv（首次使用）
+# Install uv (first time only)
 pip install uv
 
-# 启动应用
-双击 start.bat
+# Start the application
+Double-click start.bat
 
-# 停止应用
-双击 stop.bat
+# Stop the application
+Double-click stop.bat
 ```
 
-**方式二：命令行启动**
+**Method 2: Command line**
 ```bash
-# 安装依赖
+# Install dependencies
 uv sync
 
-# 启动应用
+# Start the application
 uv run streamlit run app.py --server.port 8103 --server.address 0.0.0.0
 ```
 
-### 访问地址
-- 本地地址：http://localhost:8103
-- 网络地址：http://your-ip:8103
+### Access
+- Local: http://localhost:8103
+- Network: http://your-ip:8103
 
-## 📁 项目结构
+## Project Structure
 
 ```
 pdf-note-system/
-├── app.py                    # 主应用入口
+├── app.py                    # Main application entry
 ├── pages/
-│   ├── 1_📚_书架管理.py     # 书架管理页面
-│   └── 2_🔖_书签管理.py     # 书签管理页面
+│   ├── 1_bookshelf.py        # Bookshelf management page
+│   └── 2_bookmarks.py        # Bookmark management page
 ├── components/
-│   ├── reader.py             # 阅读器核心组件
-│   ├── note_panel.py         # 笔记面板组件
-│   ├── bookmark_manager.py   # 书签管理组件
-│   └── image_uploader.py     # 图片上传组件
+│   ├── reader.py             # Reader core component
+│   ├── note_panel.py         # Note panel component
+│   ├── bookmark_manager.py   # Bookmark management component
+│   └── image_uploader.py     # Image upload component
 ├── utils/
-│   ├── pdf_handler.py        # PDF处理工具
-│   ├── note_storage.py       # 笔记存储工具
-│   ├── image_handler.py      # 图片处理工具
-│   └── logger.py             # 日志工具
-├── data/                     # 数据目录（自动创建）
+│   ├── pdf_handler.py        # PDF processing utility
+│   ├── note_storage.py       # Note storage utility
+│   ├── image_handler.py      # Image processing utility
+│   └── logger.py             # Logging utility
+├── data/                     # Data directory (auto-created)
 │   ├── shelf.json
 │   └── books/
 │       └── {book_id}/
 │           ├── book.pdf
 │           ├── notes.json
 │           └── images/
-├── logs/                     # 日志目录
-├── requirements.txt          # 依赖列表
-├── pyproject.toml            # 项目配置
-├── start.bat                 # Windows启动脚本
-└── stop.bat                  # Windows停止脚本
+├── logs/                     # Log directory
+├── requirements.txt          # Dependencies
+├── pyproject.toml            # Project configuration
+├── start.bat                 # Windows startup script
+└── stop.bat                  # Windows stop script
 ```
 
-## 🎯 使用指南
+## Usage Guide
 
-### 上传书籍
-1. 点击左侧导航栏的「书架管理」
-2. 在"上传新书籍"区域点击"浏览文件"选择PDF文件
-3. 可选：自定义书籍名称
-4. 点击「上传书籍」按钮
+### Upload a Book
+1. Click "Bookshelf" in the left sidebar
+2. Click "Browse files" to select a PDF
+3. Optionally customize the book title
+4. Click upload
 
-### 开始阅读
-1. 在书架中找到要阅读的书籍
-2. 点击书籍名称展开详情
-3. 点击「开始阅读」按钮
+### Start Reading
+1. Find the book on the bookshelf
+2. Click the eye icon to start reading
 
-### 添加笔记
-1. 在阅读页面点击右侧「添加笔记」标签
-2. 输入选中的文本（前15字预览）
-3. 填写笔记内容（支持Markdown）
-4. 可选：上传图片
-5. 点击「保存笔记」按钮
+### Add a Note
+1. Click the note panel on the right side
+2. Enter selected text
+3. Write note content (Markdown supported)
+4. Optionally upload images
+5. Click save
 
-### 添加书签
-1. 在阅读页面点击「添加书签」按钮
-2. 可选：填写书签备注
-3. 点击确认
+### Add a Bookmark
+1. Click the bookmark button in the reader
+2. Optionally add a note
+3. Confirm
 
-### 翻页操作
-- **点击按钮**：◀ 上一页 / ▶ 下一页
-- **方向键**：← 上一页 / → 下一页
-- **滑块**：拖动滑块跳转页面
-- **输入框**：直接输入页码跳转
+### Page Navigation
+- **Button**: Previous / Next
+- **Arrow Keys**: Left / Right
+- **Slider**: Drag to jump
+- **Input**: Type page number directly
 
-## 📋 快捷键
+## Shortcuts
 
-| 按键 | 功能 |
-|------|------|
-| ← | 上一页 |
-| → | 下一页 |
+| Key | Action |
+|-----|--------|
+| Left Arrow | Previous page |
+| Right Arrow | Next page |
 
-## 📊 数据存储
+## Data Storage
 
-- **书架配置**：`data/shelf.json`
-- **笔记数据**：`data/books/{book_id}/notes.json`
-- **图片文件**：`data/books/{book_id}/images/`
-- **运行日志**：`logs/app_YYYYMMDD.log`
+- **Shelf config**: `data/shelf.json`
+- **Notes**: `data/books/{book_id}/notes.json`
+- **Images**: `data/books/{book_id}/images/`
+- **Logs**: `logs/app_YYYYMMDD.log`
 
-## 🛠️ 技术栈
+## Tech Stack
 
-- **框架**：Streamlit 1.28+
-- **PDF处理**：PyMuPDF (fitz) 1.23+
-- **图片处理**：Pillow 10.0+
-- **包管理**：uv
-- **日志**：Python logging模块
+- **Framework**: Streamlit 1.28+
+- **PDF Processing**: PyMuPDF (fitz) 1.23+
+- **Image Processing**: Pillow 10.0+
+- **Package Manager**: uv
+- **Logging**: Python logging module
 
-## 📝 开发说明
+## Development
 
-### 代码规范
-- 使用Python 3.9+
-- 使用Streamlit原生组件
-- 所有核心模块添加日志记录
-- 使用JSON文件存储数据
+### Code Style
+- Python 3.9+
+- Streamlit native components
+- Logging for all core modules
+- JSON file storage
 
-### 扩展开发
-- 在 `components/` 目录添加新组件
-- 在 `utils/` 目录添加工具函数
-- 在 `pages/` 目录添加新页面
+### Extending
+- Add components in `components/`
+- Add utilities in `utils/`
+- Add pages in `pages/`
 
-## 📄 许可证
+## License
 
 MIT License
 
-## 🤝 贡献
+## Contributing
 
-欢迎提交Issue和Pull Request！
+Issues and Pull Requests are welcome!
