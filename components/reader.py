@@ -270,7 +270,27 @@ def reader(book: dict):
                     display_title = pdf.get_toc_for_page(display_page)
                     if display_title:
                         st.markdown(f"**{display_title}**")
-                    st.subheader(f"第 {display_page + 1} 页")
+                    col_prev_top, col_page, col_next_top = st.columns([0.3, 1, 0.3])
+                    with col_prev_top:
+                        if st.button("◀", key="prev_page_single_top", use_container_width=True):
+                            if current_page > 0:
+                                st.session_state['current_page'] = max(0, current_page - 1)
+                                st.session_state['page_input_single_value'] = st.session_state['current_page'] + 1
+                                st.session_state['page_input'] = st.session_state['current_page'] + 1
+                                from utils.note_storage import update_last_page
+                                update_last_page(book['id'], st.session_state['current_page'])
+                                st.rerun()
+                    with col_page:
+                        st.subheader(f"第 {display_page + 1} 页")
+                    with col_next_top:
+                        if st.button("▶", key="next_page_single_top", use_container_width=True):
+                            if current_page < total_pages - 1:
+                                st.session_state['current_page'] = min(total_pages - 1, current_page + 1)
+                                st.session_state['page_input_single_value'] = st.session_state['current_page'] + 1
+                                st.session_state['page_input'] = st.session_state['current_page'] + 1
+                                from utils.note_storage import update_last_page
+                                update_last_page(book['id'], st.session_state['current_page'])
+                                st.rerun()
                     note_count = get_note_count_by_page(book['notes_path'], display_page)
                     if display_mode == 'pdf':
                         render_page_image(pdf, display_page, note_count)
