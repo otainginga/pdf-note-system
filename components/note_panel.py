@@ -30,6 +30,7 @@ def render_markdown_with_images(content: str, images_path: str):
     logger.debug(f"Markdown渲染完成")
 
 
+@st.fragment
 def note_panel(notes_path: str, images_path: str, book_id: str, current_pages: list):
     logger.info(f"初始化笔记面板: current_pages={current_pages}")
     
@@ -54,7 +55,6 @@ def note_panel(notes_path: str, images_path: str, book_id: str, current_pages: l
                      type="primary" if st.session_state['note_panel_tab'] == 'notes' else "secondary"):
             st.session_state['note_panel_tab'] = 'notes'
             logger.info("切换到笔记列表")
-            st.rerun()
     
     with col_add:
         if st.button("➕ 添加笔记", 
@@ -63,7 +63,6 @@ def note_panel(notes_path: str, images_path: str, book_id: str, current_pages: l
                      type="primary" if st.session_state['note_panel_tab'] == 'add' else "secondary"):
             st.session_state['note_panel_tab'] = 'add'
             logger.info("切换到添加笔记")
-            st.rerun()
     
     st.divider()
     
@@ -109,9 +108,9 @@ def note_panel(notes_path: str, images_path: str, book_id: str, current_pages: l
                     
                     col1, col2 = st.columns(2)
                     with col1:
-                        st.markdown(f"*创建时间:* {note['created_at']}")
+                        st.markdown(f'<p style="font-size:0.5em;color:#888;margin:0;">创建: {note["created_at"]}</p>', unsafe_allow_html=True)
                     with col2:
-                        st.markdown(f"*更新时间:* {note['updated_at']}")
+                        st.markdown(f'<p style="font-size:0.5em;color:#888;margin:0;">更新: {note["updated_at"]}</p>', unsafe_allow_html=True)
                     
                     edit_key = f"edit_{note['id']}"
                     delete_key = f"delete_{note['id']}"
@@ -124,7 +123,7 @@ def note_panel(notes_path: str, images_path: str, book_id: str, current_pages: l
                             st.session_state['editing_text'] = note.get('text', '')
                             st.session_state['editing_images'] = note['images'].copy()
                             logger.info(f"开始编辑笔记: {note['id']}")
-                            st.rerun()
+                            st.rerun(scope="fragment")
                     with col_delete:
                         if st.button("删除", key=delete_key):
                             deleted = delete_note(notes_path, note['id'])
@@ -133,7 +132,7 @@ def note_panel(notes_path: str, images_path: str, book_id: str, current_pages: l
                                     delete_image(images_path, img)
                             st.success("笔记已删除")
                             logger.info(f"笔记删除成功: {note['id']}")
-                            st.rerun()
+                            st.rerun(scope="fragment")
             
                     st.markdown("</div>", unsafe_allow_html=True)
         
@@ -180,7 +179,7 @@ def add_new_note(notes_path: str, images_path: str, book_id: str, current_pages:
             st.success("笔记已保存")
             logger.info(f"笔记添加成功: page={selected_page}")
             st.session_state['note_panel_tab'] = 'notes'
-            st.rerun()
+            st.rerun(scope="fragment")
         else:
             st.warning("请输入笔记内容")
             logger.warning("笔记内容为空")
@@ -233,7 +232,7 @@ def edit_note(notes_path: str, images_path: str, book_id: str):
                     st.session_state['editing_images'] = images
                     st.session_state['editing_content'] = new_content
                     logger.info(f"删除笔记中的图片: {img_name}")
-                    st.rerun()
+                    st.rerun(scope="fragment")
     
     col_save, col_cancel = st.columns(2)
     with col_save:
@@ -246,7 +245,7 @@ def edit_note(notes_path: str, images_path: str, book_id: str):
             del st.session_state['editing_text']
             del st.session_state['editing_images']
             st.session_state['note_panel_tab'] = 'notes'
-            st.rerun()
+            st.rerun(scope="fragment")
     with col_cancel:
         if st.button("取消", key="cancel_edit_note"):
             del st.session_state['editing_note_id']
@@ -255,4 +254,3 @@ def edit_note(notes_path: str, images_path: str, book_id: str):
             del st.session_state['editing_images']
             logger.debug("取消编辑笔记")
             st.session_state['note_panel_tab'] = 'notes'
-            st.rerun()
